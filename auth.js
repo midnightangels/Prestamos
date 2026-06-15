@@ -1,6 +1,6 @@
 // ─── AUTENTICACIÓN GOOGLE ───────────────────────────────────────────────────
 // Reemplazá CLIENT_ID con el tuyo desde Google Cloud Console
-const CLIENT_ID = 'TU_CLIENT_ID_AQUI.apps.googleusercontent.com';
+const CLIENT_ID = '435637014005-jaer9ttmu0lkb02mpiu4vl1hkivcqrj4.apps.googleusercontent.com';
 
 const SCOPES = [
   'https://www.googleapis.com/auth/spreadsheets',
