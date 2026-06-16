@@ -1,4 +1,4 @@
-const CACHE_NAME = 'prestapro-v2';
+const CACHE_NAME = 'prestapro-v3';
 const ASSETS = [
   './',
   './index.html',
