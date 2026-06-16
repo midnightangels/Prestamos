@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#0f172a" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="PrestaPro" />
+  <title>PrestaPro – Gestión de Préstamos</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<!-- ════ LOGIN ════ -->
+<div id="login-screen">
+  <div class="login-logo">💰</div>
+  <h1 class="login-title">Presta<span>Pro</span></h1>
+  <p class="login-subtitle">Gestioná tus préstamos.<br>Todo sincronizado con Google Sheets.</p>
+  <button class="btn-google" onclick="signIn()">
+    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google">
+    Ingresar con Google
+  </button>
+</div>
+
+<!-- ════ APP ════ -->
+<div id="app">
+
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <div class="topbar-brand">Presta<span>Pro</span></div>
+    <div class="topbar-user">
+      <img id="user-avatar" class="avatar" src="" alt="" onerror="this.style.display='none'" />
+      <span id="user-name" style="font-size:0.85rem;color:var(--text-secondary)"></span>
+      <button class="btn-logout" onclick="signOut()">Salir</button>
+    </div>
+  </header>
+
+  <!-- NAV -->
+  <nav class="nav-tabs">
+    <button class="nav-tab active" data-view="dashboard" onclick="navigateTo('dashboard')">
+      <span class="nav-icon">📊</span>Dashboard
+    </button>
+    <button class="nav-tab" data-view="clientes" onclick="navigateTo('clientes')">
+      <span class="nav-icon">👥</span>Clientes
+    </button>
+    <button class="nav-tab" data-view="nuevo" onclick="navigateTo('nuevo')">
+      <span class="nav-icon">➕</span>Nuevo
+    </button>
+    <button class="nav-tab" data-view="config" onclick="navigateTo('config')">
+      <span class="nav-icon">⚙️</span>Config
+    </button>
+  </nav>
+
+  <!-- CONTENIDO -->
+  <main class="content">
+
+    <!-- ── DASHBOARD ── -->
+    <div class="view active" id="view-dashboard">
+
+      <div class="stats-grid">
+        <div class="stat-card" style="--accent-color: var(--accent)">
+          <div class="stat-label">Clientes</div>
+          <div class="stat-value" id="stat-clientes">–</div>
+          <div class="stat-sub">registrados</div>
+        </div>
+        <div class="stat-card" style="--accent-color: var(--success)">
+          <div class="stat-label">Activos</div>
+          <div class="stat-value" id="stat-activos">–</div>
+          <div class="stat-sub">préstamos</div>
+        </div>
+        <div class="stat-card" style="--accent-color: var(--danger)">
+          <div class="stat-label">Morosos</div>
+          <div class="stat-value" id="stat-morosos">–</div>
+          <div class="stat-sub">con cuotas vencidas</div>
+        </div>
+        <div class="stat-card" style="--accent-color: var(--warning)">
+          <div class="stat-label">En la calle</div>
+          <div class="stat-value" id="stat-capital" style="font-size:1rem">–</div>
+          <div class="stat-sub">capital prestado</div>
+        </div>
+      </div>
+
+      <!-- Sub-stats ganancias -->
+      <div class="stats-grid" style="margin-bottom:1.5rem">
+        <div class="stat-card" style="--accent-color: var(--success)">
+          <div class="stat-label">Cobrado</div>
+          <div class="stat-value" id="stat-ganancia-real" style="font-size:0.95rem;color:var(--success)">–</div>
+          <div class="stat-sub">ganancia realizada</div>
+        </div>
+        <div class="stat-card" style="--accent-color: var(--accent-dim)">
+          <div class="stat-label">Por cobrar</div>
+          <div class="stat-value" id="stat-ganancia-esp" style="font-size:0.95rem">–</div>
+          <div class="stat-sub">ganancia esperada</div>
+        </div>
+        <div class="stat-card" style="grid-column: span 2; --accent-color: var(--warning)">
+          <div class="stat-label">Cuotas pendientes</div>
+          <div class="stat-value" id="stat-pendiente" style="font-size:1rem;color:var(--warning)">–</div>
+          <div class="stat-sub">total a cobrar en cuotas activas</div>
+        </div>
+      </div>
+
+      <!-- Morosos -->
+      <div class="section-header">
+        <span class="section-title">⚠️ Morosos</span>
+        <button class="btn btn-outline btn-sm" onclick="loadDashboard()">↻ Actualizar</button>
+      </div>
+      <div class="prestamo-list" id="morosos-list">
+        <div class="empty-state"><div class="empty-state-icon">⏳</div><p>Cargando...</p></div>
+      </div>
+
+      <div style="margin-top:1.5rem"></div>
+
+      <!-- Préstamos activos -->
+      <div class="section-header">
+        <span class="section-title">💼 Préstamos activos</span>
+      </div>
+      <div class="prestamo-list" id="activos-list">
+        <div class="empty-state"><div class="empty-state-icon">⏳</div><p>Cargando...</p></div>
+      </div>
+
+    </div><!-- /dashboard -->
+
+    <!-- ── CLIENTES ── -->
+    <div class="view" id="view-clientes">
+      <div class="section-header">
+        <span class="section-title">👥 Todos los clientes</span>
+        <button class="btn btn-outline btn-sm" onclick="loadClientes()">↻ Actualizar</button>
+      </div>
+      <div class="prestamo-list" id="clientes-list">
+        <div class="empty-state"><div class="empty-state-icon">⏳</div><p>Cargando...</p></div>
+      </div>
+    </div>
+
+    <!-- ── NUEVO PRÉSTAMO ── -->
+    <div class="view" id="view-nuevo">
+
+      <!-- Cliente -->
+      <div class="form-card">
+        <div class="form-title">👤 Cliente</div>
+
+        <div id="seccion-cliente-existente">
+          <div class="form-group">
+            <label class="form-label">Seleccionar cliente</label>
+            <select class="form-select" id="select-cliente">
+              <option value="">Cargando...</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="seccion-cliente-nuevo" style="display:none">
+          <div class="form-group">
+            <label class="form-label">Nombre completo *</label>
+            <input class="form-input" type="text" id="inp-nombre" placeholder="Juan Pérez">
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">DNI *</label>
+              <input class="form-input" type="text" id="inp-dni" placeholder="30123456">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Teléfono</label>
+              <input class="form-input" type="tel" id="inp-tel" placeholder="11-1234-5678">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Dirección</label>
+            <input class="form-input" type="text" id="inp-dir" placeholder="Calle 123, CABA">
+          </div>
+        </div>
+
+        <button class="btn btn-outline" id="btn-toggle-cliente" onclick="toggleNuevoCliente()" style="margin-top:0.25rem">
+          + Crear cliente nuevo
+        </button>
+      </div>
+
+      <!-- Datos del préstamo -->
+      <div class="form-card">
+        <div class="form-title">💵 Datos del préstamo</div>
+        <div id="form-prestamo">
+          <div class="form-group">
+            <label class="form-label">Monto a prestar ($) *</label>
+            <input class="form-input" type="number" id="inp-monto" placeholder="50000" min="1" oninput="calcularGanancia()">
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Tasa por cuota (%) *</label>
+              <input class="form-input" type="number" id="inp-tasa" placeholder="10" step="0.5" min="0" oninput="calcularGanancia()">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Cant. cuotas *</label>
+              <input class="form-input" type="number" id="inp-cuotas" placeholder="6" min="1" oninput="calcularGanancia()">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Fecha de inicio *</label>
+            <input class="form-input" type="date" id="inp-fecha" value="">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Observaciones</label>
+            <input class="form-input" type="text" id="inp-obs" placeholder="Garantía, referidos, etc.">
+          </div>
+        </div>
+
+        <!-- Preview de ganancias -->
+        <div class="ganancia-preview" id="ganancia-preview" style="display:none">
+          <div class="ganancia-row"><span>Capital</span><span id="prev-capital">–</span></div>
+          <div class="ganancia-row"><span>Interés por cuota</span><span id="prev-interes-cuota">–</span></div>
+          <div class="ganancia-row"><span>Valor de cada cuota</span><span id="prev-cuota">–</span></div>
+          <div class="ganancia-row"><span>Ganancia total</span><span id="prev-ganancia-total" style="color:var(--success)">–</span></div>
+          <div class="ganancia-row total"><span>TOTAL A COBRAR</span><span id="prev-total">–</span></div>
+        </div>
+
+        <div style="margin-top:1rem">
+          <button class="btn btn-primary" onclick="submitPrestamo()">
+            💾 Guardar en Google Sheets
+          </button>
+        </div>
+      </div>
+
+    </div><!-- /nuevo -->
+
+    <!-- ── CONFIGURACIÓN ── -->
+    <div class="view" id="view-config">
+      <div class="form-card">
+        <div class="form-title">⚙️ Configuración inicial</div>
+
+        <div class="config-section">
+          <span class="config-label">Paso 1 — Google Cloud Console</span>
+          <div class="config-info">
+            1. Entrá a <strong>console.cloud.google.com</strong><br>
+            2. Creá un proyecto nuevo<br>
+            3. Habilitá la API: <code>Google Sheets API</code> y <code>Google Drive API</code><br>
+            4. En "Credenciales" → "Crear credenciales" → <code>ID de cliente OAuth 2.0</code><br>
+            5. Tipo: <code>Aplicación Web</code><br>
+            6. En "Orígenes autorizados" agregá tu dominio (ej: <code>https://tu-sitio.com</code>)<br>
+            7. Copiá el <strong>Client ID</strong>
+          </div>
+        </div>
+
+        <div class="config-section">
+          <span class="config-label">Paso 2 — Google Sheets</span>
+          <div class="config-info">
+            1. Creá un Google Sheet nuevo en tu Drive<br>
+            2. La URL tiene este formato:<br>
+            <code>docs.google.com/spreadsheets/d/<strong>SPREADSHEET_ID</strong>/edit</code><br>
+            3. Copiá ese <strong>Spreadsheet ID</strong>
+          </div>
+        </div>
+
+        <div class="config-section">
+          <span class="config-label">Paso 3 — Editar los archivos</span>
+          <div class="config-info">
+            En <code>js/auth.js</code> → reemplazá <code>TU_CLIENT_ID_AQUI</code><br><br>
+            En <code>js/sheets.js</code> → reemplazá <code>TU_SPREADSHEET_ID_AQUI</code><br><br>
+            La primera vez que iniciés sesión, la app crea automáticamente las hojas:<br>
+            <code>Clientes</code> · <code>Prestamos</code> · <code>Cuotas</code>
+          </div>
+        </div>
+
+        <div class="config-section">
+          <span class="config-label">Paso 4 — Instalar como app</span>
+          <div class="config-info">
+            En Chrome/Edge: buscá el ícono de instalación en la barra de direcciones.<br>
+            En Android: Menú → "Añadir a pantalla de inicio".<br>
+            En iOS Safari: Compartir → "Añadir a inicio".
+          </div>
+        </div>
+      </div>
+    </div><!-- /config -->
+
+  </main><!-- /content -->
+
+  <!-- SYNC BAR -->
+  <div class="sync-bar">
+    <div class="sync-dot" id="sync-dot"></div>
+    Última sincronización: <strong id="sync-time">–</strong>
+  </div>
+
+</div><!-- /app -->
+
+<!-- DETALLE PRÉSTAMO (bottom sheet) -->
+<div class="detail-overlay" id="detail-overlay" onclick="e => { if(e.target===this) closeDetail(); }">
+  <div class="detail-sheet">
+    <div class="detail-handle"></div>
+    <div class="detail-header">
+      <div>
+        <div class="detail-nombre" id="detail-nombre"></div>
+        <div id="detail-estado"></div>
+      </div>
+      <button class="btn btn-outline btn-sm" onclick="closeDetail()">✕ Cerrar</button>
+    </div>
+    <div id="detail-info"></div>
+    <div style="margin-top:1rem">
+      <div class="section-title" style="margin-bottom:0.5rem">Cuotas</div>
+      <div id="detail-cuotas"></div>
+    </div>
+  </div>
+</div>
+
+<!-- LOADING -->
+<div class="loading-overlay" id="loading-overlay">
+  <div class="spinner"></div>
+  <span>Cargando...</span>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+  // Setear fecha de hoy por defecto
+  document.getElementById('inp-fecha').value = new Date().toISOString().slice(0,10);
+</script>
+<script src="js/auth.js"></script>
+<script src="js/sheets.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
