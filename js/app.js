@@ -369,17 +369,25 @@ function closeFicha() {
 
 // ─── NUEVO PRÉSTAMO ────────────────────────────────────────────────────────────
 async function loadClientesSelect() {
-  if (SPREADSHEET_ID.includes('TU_SPREADSHEET_ID')) return;
+  const sel = document.getElementById('select-cliente');
+  if (SPREADSHEET_ID.includes('TU_SPREADSHEET_ID')) {
+    sel.innerHTML = '<option value="">⚠️ Falta configurar Spreadsheet ID</option>';
+    return;
+  }
+  sel.innerHTML = '<option value="">Cargando clientes...</option>';
   try {
     clientesCache = await getClientes();
-    const sel = document.getElementById('select-cliente');
     if (!clientesCache.length) {
-      sel.innerHTML = '<option value="">Primero agregá un cliente</option>';
+      sel.innerHTML = '<option value="">No hay clientes — creá uno nuevo abajo</option>';
       return;
     }
     sel.innerHTML = '<option value="">Seleccioná un cliente...</option>' +
       clientesCache.map(c => `<option value="${c.ID}" data-nombre="${c.Nombre}">${c.Nombre} (DNI: ${c.DNI})</option>`).join('');
-  } catch(e) { console.error(e); }
+  } catch(e) {
+    console.error('Error cargando clientes para el select:', e);
+    sel.innerHTML = '<option value="">Error al cargar — tocá "Actualizar"</option>';
+    toast('No se pudieron cargar los clientes: ' + e.message, 'error');
+  }
 }
 
 function resetForm() {
@@ -397,13 +405,13 @@ function calcularGanancia() {
 
   if (!monto || !tasa || !cuotas) { document.getElementById('ganancia-preview').style.display = 'none'; return; }
 
-  const interesTotal    = monto * (tasa / 100) * cuotas;
+  // Tasa sobre el total prestado (interés simple, una sola vez)
+  const interesTotal    = monto * (tasa / 100);
   const totalConInteres = monto + interesTotal;
   const montoCuota      = totalConInteres / cuotas;
-  const gananciaCuota   = monto * tasa / 100;
 
   document.getElementById('prev-capital').textContent       = fmt(monto);
-  document.getElementById('prev-interes-cuota').textContent = fmt(gananciaCuota);
+  document.getElementById('prev-interes-cuota').textContent = fmt(interesTotal);
   document.getElementById('prev-cuota').textContent         = fmt(montoCuota);
   document.getElementById('prev-ganancia-total').textContent= fmt(interesTotal);
   document.getElementById('prev-total').textContent         = fmt(totalConInteres);
