@@ -97,7 +97,8 @@ async function guardarPrestamo(datos) {
   const clienteNombre = datos.clienteNombre;
   const fechaInicio   = datos.fechaInicio;
 
-  const interesTotal    = monto * (tasa / 100) * cuotas;
+  // Interés simple: se calcula una sola vez sobre el monto prestado
+  const interesTotal    = monto * (tasa / 100);
   const totalConInteres = monto + interesTotal;
   const montoCuota      = totalConInteres / cuotas;
   const gananciaTotal   = interesTotal;
@@ -115,7 +116,7 @@ async function guardarPrestamo(datos) {
     const fechaVenc    = new Date(fechaBase);
     fechaVenc.setMonth(fechaVenc.getMonth() + i);
     const capitalCuota = (monto / cuotas).toFixed(2);
-    const interesCuota = (monto * tasa / 100).toFixed(2);
+    const interesCuota = (interesTotal / cuotas).toFixed(2);
     await appendRow(SHEET_CUOTAS, [
       genId(), idPrestamo, clienteId,
       i, fechaVenc.toLocaleDateString('es-AR'),
