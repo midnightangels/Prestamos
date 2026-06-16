@@ -2,7 +2,7 @@
 // Reemplazá SPREADSHEET_ID con el ID de tu Google Sheet
 // El ID está en la URL: https://docs.google.com/spreadsheets/d/SPREADSHEET_ID/edit
 
-const SPREADSHEET_ID = 'TU_SPREADSHEET_ID_AQUI';
+const SPREADSHEET_ID = '1B7xBgeREBaJSggmbjgxMUbpUuy9RL7aoLN_ANE9T43U';
 const SHEETS_BASE    = 'https://sheets.googleapis.com/v4/spreadsheets';
 
 // Nombres de hojas en el Google Sheet
